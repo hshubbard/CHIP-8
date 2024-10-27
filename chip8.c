@@ -24,7 +24,7 @@ typedef enum {
     QUIT,
     RUNNING,
     PAUSED,
-} emu_state_t
+} emu_state_t;
 
 // CHIP8 Machine Setup
 typedef struct {
@@ -38,6 +38,7 @@ bool init_sdl(sdl_t *sdl, const config_t config){
         return false;
     }
 
+    // Create window
     sdl->window = SDL_CreateWindow("New Window", 
                                     SDL_WINDOWPOS_CENTERED,
                                      SDL_WINDOWPOS_CENTERED,
@@ -85,8 +86,8 @@ bool set_config_args(config_t *config, const int argc, const char **argv){
 }
 
 // quit sdl
-void quit_sdl(const sdl_t sdl){
-    printf("Quitting SDL.\n");
+void cleanup_sdl(const sdl_t sdl){
+    printf("\nQuitting SDL.\n");
 
     SDL_DestroyRenderer(sdl.renderer);
     SDL_DestroyWindow(sdl.window);
@@ -114,14 +115,53 @@ void update_window(const sdl_t sdl){
     SDL_RenderPresent(sdl.renderer);
 }
 
-void handle_input(){
+void handle_input(chip8_t *chip8){
     SDL_Event event;
 
     while (SDL_PollEvent(&event)) // poll until all events are handled (works as a queue)
         switch(event.type) {
             case SDL_QUIT:
+                // Exit window and end program
+                chip8->state = QUIT; // Exit main emulator loop
                 return;
+            
+            case SDL_KEYDOWN:
+                switch(event.key.keysym.sym){
+                    case SDLK_ESCAPE:
+                        // Escape Key; Exist window and End Program
+                        chip8->state = QUIT;
+                        return;
+
+                    case SDLK_DOWN:
+                        return;
+                    
+                    case SDLK_UP:
+                        return;
+
+                    case SDLK_LEFT:
+                        return;
+
+                    case SDLK_RIGHT:
+                        return;
+
+                    default:
+                        break;
+                }
+                break;
+
+            case SDL_KEYUP:
+                break;
+            
+            default:
+                break;
         }
+}
+
+bool init_chip8(chip8_t *chip8){
+    // Initialize CHIP8 state
+    chip8->state = RUNNING;
+
+    return true;
 }
 
 
@@ -149,6 +189,9 @@ int main(const int argc, const char **argv) {
 
     // Initialize CHIP8 Machine
     chip8_t chip8 = {0};
+    if (!init_chip8(&chip8)){
+        exit(1);
+    }
     
 
 
@@ -157,10 +200,11 @@ int main(const int argc, const char **argv) {
 
     // Main emulator loop
 
-    while (true) {
+    while (chip8.state != QUIT) {
 
         // Handle user input
-        handle_input();
+        handle_input(&chip8);
+        // If chip8.state == PAUSED continue;
 
         // Get_time();
         // Emulate CHIP8 Instructions
@@ -174,14 +218,9 @@ int main(const int argc, const char **argv) {
     }
 
     // Cleanup at exit
-    quit_sdl(sdl);
+    cleanup_sdl(sdl);
     
     // Create window
-
-    
-
-    printf("Hello, World!\n");
-
-
+    printf("Exiting Application.\n\n");
     exit(0);
 }
