@@ -29,6 +29,9 @@ typedef enum {
 // CHIP8 Machine Setup
 typedef struct {
     emu_state_t state;
+    uint8_t ram[4096];
+
+    
 } chip8_t;
 
 //initialize sdl
